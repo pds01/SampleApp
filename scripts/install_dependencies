@@ -38,6 +38,9 @@ systemctl enable myapp.service
 
 su - webuser <<'EOF'
 
+rm -f master.zip
+rm -fr simple-sinatra-app-master
+
 wget https://github.com/rea-cruitment/simple-sinatra-app/archive/master.zip
 
 unzip master.zip

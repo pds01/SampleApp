@@ -1,6 +1,6 @@
 #!/bin/bash
-isExistApp = `pgrep httpd`
+isExistApp = `pgrep ruby`
 if [[ -n  $isExistApp ]]; then
-    service httpd stop        
+    systemctl start myapp.service        
 fi
 

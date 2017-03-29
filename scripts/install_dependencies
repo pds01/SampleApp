@@ -1,3 +1,41 @@
 #!/bin/bash
-yum install -y httpd
+yum install -y wget unzip rubygem-bundler
+
+
+su - webuser
+wget https://github.com/rea-cruitment/simple-sinatra-app/archive/master.zip
+
+unzip master.zip
+cd simple-sinatra-app-master/
+
+bundle install
+exit
+
+
+
+cat >/usr/lib/systemd/system/myapp.service <<EOL
+[Unit]
+Description=MyApp
+Requires=network.target
+
+[Service]
+Type=simple
+User=webuser
+Group=webuser
+WorkingDirectory=/home/webuser/simple-sinatra-app-master
+ExecStart=/usr/bin/bash -lc 'bundle exec rackup --port 8080'
+TimeoutSec=30
+RestartSec=15s
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+EOL
+
+
+
+
+
+systemctl enable myapp.service
 

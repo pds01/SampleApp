@@ -1,6 +1,11 @@
 #!/bin/bash
 isExistApp = `pgrep ruby`
 if [[ -n  $isExistApp ]]; then
-    systemctl start myapp.service        
+    systemctl stop myapp.service        
+fi
+
+isExistApp = `pgrep httpd`
+if [[ -n  $isExistApp ]]; then
+    systemctl stop httpd.service        
 fi
 

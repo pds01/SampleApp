@@ -1,3 +1,5 @@
 #!/bin/bash
 systemctl start myapp.service
+systemctl start httpd
+
 

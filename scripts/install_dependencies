@@ -1,5 +1,5 @@
 #!/bin/bash
-yum install -y wget unzip rubygem-bundler
+yum install -y wget unzip rubygem-bundler httpd
 
 
 cat >/usr/lib/systemd/system/myapp.service <<EOL
@@ -22,6 +22,14 @@ WantedBy=multi-user.target
 
 EOL
 
+cat /etc/httpd/conf.d/proxy.conf <<EOL
+<VirtualHost *:*>
+    ProxyPreserveHost On
+    ProxyPass        "/" "http://localhost:8080/"
+    ProxyPassReverse "/" "http://localhost:8080/"
+</VirtualHost>
+
+EOL
 
 
 

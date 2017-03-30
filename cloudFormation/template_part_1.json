@@ -1,0 +1,551 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "reaVpc": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.10.0.0/16",
+        "InstanceTenancy": "default",
+        "EnableDnsSupport": "true",
+        "EnableDnsHostnames": "false",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "REA2_VPC_1"
+          }
+        ]
+      }
+      
+    },
+    "reaSubnet1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.10.10.0/24",
+        "AvailabilityZone": "us-west-2a",
+        "VpcId": {
+          "Ref": "reaVpc"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "REA2_SUBNET_1"
+          }
+        ]
+      }
+
+    },
+    "reaSubnet2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.10.20.0/24",
+        "AvailabilityZone": "us-west-2b",
+        "VpcId": {
+          "Ref": "reaVpc"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "REA2_SUBNET_2"
+          }
+        ]
+      }
+
+    },
+    "igw26232a42": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "REA2_GATEWAY"
+          }
+        ]
+      }
+    },
+    "dopt1f3ad17a": {
+      "Type": "AWS::EC2::DHCPOptions",
+      "Properties": {
+        "DomainName": "us-west-2.compute.internal",
+        "DomainNameServers": [
+          "AmazonProvidedDNS"
+        ]
+      }
+    },
+    "acl6902380e": {
+      "Type": "AWS::EC2::NetworkAcl",
+      "Properties": {
+        "VpcId": {
+          "Ref": "reaVpc"
+        }
+      }
+    },
+    "rtb9ee510f8": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "reaVpc"
+        }
+      }
+    },
+    "rtbassocationreaSubnet1": {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+          "RouteTableId" : {
+                "Ref": "rtb9ee510f8"
+          },
+          "SubnetId" : {
+                "Ref": "reaSubnet1"
+          }
+                
+      }
+    }, 
+    "rtbassocationreaSubnet2": {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+          "RouteTableId" : {
+                "Ref":"rtb9ee510f8"
+          },
+          "SubnetId" : {
+                "Ref": "reaSubnet2"
+          }
+      }
+    },   
+  
+
+
+
+    "elbREA2LoadBalancer": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties": {
+        "Subnets": [
+          {
+            "Ref": "reaSubnet1"
+          },
+          {
+            "Ref": "reaSubnet2"
+          }
+        ],
+        "HealthCheck": {
+          "HealthyThreshold": "10",
+          "Interval": "30",
+          "Target": "TCP:80",
+          "Timeout": "5",
+          "UnhealthyThreshold": "2"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled": "true",
+          "Timeout": "300"
+        },
+        "ConnectionSettings": {
+          "IdleTimeout": "60"
+        },
+        "CrossZone": "true",
+        "SecurityGroups": [
+          {
+            "Ref": "reaLoadBalancerSecurityGroup"
+          }
+        ],
+        "Listeners": [
+          {
+            "InstancePort": "80",
+            "LoadBalancerPort": "80",
+            "Protocol": "HTTP",
+            "InstanceProtocol": "HTTP"
+          }
+        ]
+      }
+    },
+    "reaAutoScalingGroup": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": [
+          "us-west-2a",
+          "us-west-2b"
+        ],
+        "Cooldown": "300",
+        "DesiredCapacity": "2",
+        "HealthCheckGracePeriod": "30",
+        "HealthCheckType": "EC2",
+        "MaxSize": "2",
+        "MinSize": "2",
+        "VPCZoneIdentifier": [
+          {
+            "Ref": "reaSubnet1"
+          },
+          {
+            "Ref": "reaSubnet2"
+          }
+        ],
+        "LaunchConfigurationName": {
+          "Ref": "reaLaunchConfig"
+        },
+        "LoadBalancerNames": [
+          {
+            "Ref": "elbREA2LoadBalancer"
+          }
+        ],
+        "TerminationPolicies": [
+          "Default"
+        ]
+      }
+    },
+
+
+    "reaLaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "AssociatePublicIpAddress": true,
+        "ImageId": "ami-6f68cf0f",
+        "InstanceType": "t2.micro",
+        "KeyName": "Phil AWS",
+        "IamInstanceProfile": { "Ref" : "RootInstanceProfile" },
+        "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
+             "#!/bin/bash\n",
+             "yum install -y ruby\n",
+            "yum install -y wget\n",
+             "cd /home/ec2-user\n",
+             "wget https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install\n",
+             "chmod +x ./install\n",
+             "./install auto\n",
+             "useradd webuser\n",
+             "\n"
+		  ]
+      ]}},
+       "SecurityGroups": [
+          {
+            "Ref": "reaInstanceSecurityGroup"
+          }
+        ],
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "SnapshotId": "snap-0129739714cf9f3c0",
+              "VolumeSize": 8
+            }
+          }
+        ]
+      }
+    },
+    "reaLoadBalancerSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "REA2LoadBalancerSecurityGroup",
+        "VpcId": {
+          "Ref": "reaVpc"
+        }
+      }
+    },
+    "reaInstanceSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "REA2SecurityGroup",
+        "VpcId": {
+          "Ref": "reaVpc"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "REA2SecurityGroup"
+          }
+        ]
+      }
+    },
+    "acl5": {
+      "Type": "AWS::EC2::NetworkAclEntry",
+      "Properties": {
+        "CidrBlock": "0.0.0.0/0",
+        "Egress": "true",
+        "Protocol": "-1",
+        "RuleAction": "allow",
+        "RuleNumber": "100",
+        "NetworkAclId": {
+          "Ref": "acl6902380e"
+        }
+      }
+    },
+    "acl6": {
+      "Type": "AWS::EC2::NetworkAclEntry",
+      "Properties": {
+        "CidrBlock": "0.0.0.0/0",
+        "Protocol": "-1",
+        "RuleAction": "allow",
+        "RuleNumber": "100",
+        "NetworkAclId": {
+          "Ref": "acl6902380e"
+        }
+      }
+    },
+    "subnetacl5": {
+      "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "acl6902380e"
+        },
+        "SubnetId": {
+          "Ref": "reaSubnet1"
+        }
+      }
+    },
+    "subnetacl6": {
+      "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "acl6902380e"
+        },
+        "SubnetId": {
+          "Ref": "reaSubnet2"
+        }
+      }
+    },
+    "gw3": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "reaVpc"
+        },
+        "InternetGatewayId": {
+          "Ref": "igw26232a42"
+        }
+      }
+    },
+    "route3": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "RouteTableId": {
+          "Ref": "rtb9ee510f8"
+        },
+        "GatewayId": {
+          "Ref": "igw26232a42"
+        }
+      },
+      "DependsOn": "gw3"
+    },
+    "dchpassoc3": {
+      "Type": "AWS::EC2::VPCDHCPOptionsAssociation",
+      "Properties": {
+        "VpcId": {
+          "Ref": "reaVpc"
+        },
+        "DhcpOptionsId": {
+          "Ref": "dopt1f3ad17a"
+        }
+      }
+    },
+    "ingress4": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "reaLoadBalancerSecurityGroup"
+        },
+        "IpProtocol": "tcp",
+        "FromPort": "80",
+        "ToPort": "80",
+        "CidrIp": "0.0.0.0/0"
+      }
+    },
+    "ingress5": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "reaInstanceSecurityGroup"
+        },
+        "IpProtocol": "tcp",
+        "FromPort": "80",
+        "ToPort": "80",
+        "CidrIp": "0.0.0.0/0"
+      }
+    },
+    "ingress6": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "reaInstanceSecurityGroup"
+        },
+        "IpProtocol": "tcp",
+        "FromPort": "22",
+        "ToPort": "22",
+        "CidrIp": "0.0.0.0/0"
+      }
+    },
+    "egress3": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "reaLoadBalancerSecurityGroup"
+        },
+        "IpProtocol": "-1",
+        "CidrIp": "0.0.0.0/0"
+      }
+    },
+    "egress4": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "reaInstanceSecurityGroup"
+        },
+        "IpProtocol": "-1",
+        "CidrIp": "0.0.0.0/0"
+      }
+    },
+    "RootRole": {
+         "Type": "AWS::IAM::Role",
+         "Properties": {
+            "AssumeRolePolicyDocument": {
+               "Version" : "2012-10-17",
+               "Statement": [ {
+                  "Effect": "Allow",
+                  "Principal": {
+                     "Service": [ "ec2.amazonaws.com" ]
+                  },
+                  "Action": [ "sts:AssumeRole" ]
+               } ]
+            },
+
+            "Policies": [ {
+               "PolicyName": "root",
+               "PolicyDocument": {
+                  "Version" : "2012-10-17",
+                  "Statement": [ {
+                "Action": [
+                    "s3:Get*",
+                    "s3:List*"
+                ],
+                "Effect": "Allow",
+                "Resource": "*"
+                } ]
+               }
+               } ]
+            }
+      },
+      "RootInstanceProfile": {
+         "Type": "AWS::IAM::InstanceProfile",
+         "Properties": {
+
+            "Roles": [ {
+               "Ref": "RootRole"
+            } ]
+         }
+      },
+      "REA2CodeDeployServiceRole": {
+         "Type": "AWS::IAM::Role",
+         "Properties": {
+            "AssumeRolePolicyDocument": {
+               "Version" : "2012-10-17",
+               "Statement": [
+                        {
+                        "Sid": "",
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": [
+                            "codedeploy.us-west-1.amazonaws.com",
+                            "codedeploy.ca-central-1.amazonaws.com",
+                            "codedeploy.eu-west-2.amazonaws.com",
+                            "codedeploy.ap-northeast-2.amazonaws.com",
+                            "codedeploy.ap-south-1.amazonaws.com",
+                            "codedeploy.sa-east-1.amazonaws.com",
+                            "codedeploy.eu-west-1.amazonaws.com",
+                            "codedeploy.ap-southeast-1.amazonaws.com",
+                            "codedeploy.us-east-2.amazonaws.com",
+                            "codedeploy.ap-southeast-2.amazonaws.com",
+                            "codedeploy.us-west-2.amazonaws.com",
+                            "codedeploy.us-east-1.amazonaws.com",
+                            "codedeploy.eu-central-1.amazonaws.com",
+                            "codedeploy.ap-northeast-1.amazonaws.com"
+                            ]
+                        },
+                        "Action": "sts:AssumeRole"
+                        }
+                    ]
+            },
+
+            "Policies": [ {
+               "PolicyName": "REA2AWSCodeDeployRolePolicy",
+               "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                        "Effect": "Allow",
+                        "Action": [
+                            "autoscaling:CompleteLifecycleAction",
+                            "autoscaling:DeleteLifecycleHook",
+                            "autoscaling:DescribeAutoScalingGroups",
+                            "autoscaling:DescribeLifecycleHooks",
+                            "autoscaling:PutLifecycleHook",
+                            "autoscaling:RecordLifecycleActionHeartbeat",
+                            "autoscaling:CreateAutoScalingGroup",
+                            "autoscaling:UpdateAutoScalingGroup",
+                            "autoscaling:EnableMetricsCollection",
+                            "autoscaling:DescribeAutoScalingGroups",
+                            "autoscaling:DescribePolicies",
+                            "autoscaling:DescribeScheduledActions",
+                            "autoscaling:DescribeNotificationConfigurations",
+                            "autoscaling:DescribeLifecycleHooks",
+                            "autoscaling:SuspendProcesses",
+                            "autoscaling:ResumeProcesses",
+                            "autoscaling:AttachLoadBalancers",
+                            "autoscaling:PutScalingPolicy",
+                            "autoscaling:PutScheduledUpdateGroupAction",
+                            "autoscaling:PutNotificationConfiguration",
+                            "autoscaling:PutLifecycleHook",
+                            "autoscaling:DescribeScalingActivities",
+                            "autoscaling:DeleteAutoScalingGroup",
+                            "ec2:DescribeInstances",
+                            "ec2:DescribeInstanceStatus",
+                            "ec2:TerminateInstances",
+                            "tag:GetTags",
+                            "tag:GetResources",
+                            "sns:Publish",
+                            "cloudwatch:DescribeAlarms",
+                            "elasticloadbalancing:DescribeLoadBalancers",
+                            "elasticloadbalancing:DescribeInstanceHealth",
+                            "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+                            "elasticloadbalancing:DeregisterInstancesFromLoadBalancer"
+                        ],
+                        "Resource": "*"
+                        }
+                    ]
+               }
+               } ]
+            }
+      },
+      "IAMUser": {
+          
+        "Type": "AWS::IAM::User",
+        "Properties": {
+
+            "Policies": [ {
+               "PolicyName": "REA2AWSCodeDeployFullAccess",
+               "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": "codedeploy:*",
+                            "Effect": "Allow",
+                            "Resource": "*"
+                        }
+                    ]
+                }
+               } ],
+            "UserName": "REA2_IAM_USER"
+        }
+        
+      },
+      "reaCodeDeployApplication": {
+            "Type" : "AWS::CodeDeploy::Application",
+            "Properties" : {
+            "ApplicationName" : "REA2Application"
+                 }
+    }
+
+  },
+  "Outputs" : {
+        "lbDnsName" : {
+          "Description" : "DNS name of Load Balancer",
+          "Value" : { "Fn::GetAtt" : [ "elbREA2LoadBalancer", "DNSName" ] }
+          
+        }
+      },
+  "Description": ""
+}

@@ -3,11 +3,18 @@ os: linux
 files:
   - source: /simple-sinatra-app-master
     destination: /home/webuser/simple-sinatra-app-master
+permissions:
+  - object: /home/webuser/simple-sinatra-app-master
+    user: webuser
+    group: webuser
+    type:
+      - directory
 hooks:
   BeforeInstall:
     - location: scripts/install_dependencies
       timeout: 300
       runas: root
+ ApplicationStart:
     - location: scripts/start_server
       timeout: 300
       runas: root

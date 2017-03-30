@@ -38,6 +38,7 @@
 - Update the templates SSH key element ""KeyName": "Phil AWS"" with a key thats alreay in your account
 - Create a stack on Cloudformation using template_part_1.json
 - Update the stack on Cloudformation using template_part_2.json  
+- The template outputs the DNS name of the loadbalancer that can be used to view the application
 
 # Updating Sample App Code
 - Updated code will need to commied to a GIT repo

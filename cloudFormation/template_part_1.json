@@ -353,8 +353,9 @@
         "IpProtocol": "tcp",
         "FromPort": "80",
         "ToPort": "80",
-        "SourceSecurityGroupName": { "Ref": "reaLoadBalancerSecurityGroup" }
-      }
+        "SourceSecurityGroupId": { "Ref": "reaLoadBalancerSecurityGroup" }
+      },
+      "DependsOn": "reaLoadBalancerSecurityGroup"
     },
     "egress3": {
       "Type": "AWS::EC2::SecurityGroupEgress",

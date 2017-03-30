@@ -1,7 +1,8 @@
 #!/bin/bash
-yum install -y wget unzip rubygem-bundler httpd
+#install packages needed to run app and debug
+yum install -y wget unzip rubygem-bundler httpd links
 
-
+# create systemctl file
 cat >/usr/lib/systemd/system/myapp.service <<EOL
 [Unit]
 Description=MyApp
@@ -22,6 +23,7 @@ WantedBy=multi-user.target
 
 EOL
 
+#create apache proxy file
 cat >/etc/httpd/conf.d/proxy.conf <<EOL
 <VirtualHost *:*>
     ProxyPreserveHost On
@@ -31,10 +33,10 @@ cat >/etc/httpd/conf.d/proxy.conf <<EOL
 
 EOL
 
-
+# allow apache to proxy app by changing selinux
 /sbin/setsebool -P httpd_can_network_connect on
 
-
+# enable this new service
 systemctl enable myapp.service
 
 

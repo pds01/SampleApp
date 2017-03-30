@@ -36,6 +36,7 @@
 - No SSH access to the VMs
 
 # Installation Instructions
+** CloudFormation templates are located in the cloudFormation folder **
 - Create a stack on Cloudformation using template_part_1.json
 - Ensure status checks are green on the instances
 - Update the stack on Cloudformation using template_part_2.json  

@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 files:
   - source: /simple-sinatra-app-master
-    destination: /home/webuser/
+    destination: /home/webuser/simple-sinatra-app-master
 hooks:
   BeforeInstall:
     - location: scripts/install_dependencies

@@ -1,4 +1,11 @@
 #!/bin/bash
+
+su - webuser <<'EOF'
+cd simple-sinatra-app-master/
+
+bundle install
+EOF
+
 systemctl start myapp.service
 systemctl start httpd
 

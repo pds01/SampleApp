@@ -555,7 +555,7 @@
                         "Revision" : {
                             "RevisionType" : "GitHub",
                             "GitHubLocation" : {
-                            "CommitId" : "887cb59201d5f78e280c71955790d46721f4d76b",
+                            "CommitId" : "b19d7918d88974ecebf3dcdc2a677a73388cc9e3",
                             "Repository" : "pds01/SampleApp"
                             }
                         }

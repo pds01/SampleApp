@@ -5,15 +5,15 @@
 - Make the application available on port 80.
 - Ensure that the server is locked down and secure.
 
-# Additional Requiremts
+# Additional Requirements
 - Allow for scaling of the application
-- Build resiliancy 
+- Resiliency 
 - Ease of update
 
 # Aproach
-- Setup an Autoscaling group for resiliancy and scalability
+- Setup an Autoscaling group for resiliency and scalability
 - Use Code Deploy to publish and update the application on the fly 
-- Create an AWS Cloud Fromation template to deploy the solution 
+- Create an AWS Cloud Formation template to deploy the solution 
 
 # Components
 - 1 x Virtual Private Cloud
@@ -35,14 +35,14 @@
 - Ports are not open to the world
 - No SSH access to the VMs
 
-# Instalation Instructions
+# Installation Instructions
 - Create a stack on Cloudformation using template_part_1.json
 - Ensure status checks are green on the instances
 - Update the stack on Cloudformation using template_part_2.json  
 - The template outputs the DNS name of the loadbalancer that can be used to view the application
 
 # Updating Sample App Code
-- Updated code will need to commied to a GIT repo
+- Updated code will need to committed to a GIT repo
 - Update the REA2DeploymentGroup element in template_part_2.json with the repo id and commit id
 - Use CloudFormation to deploy the new template
 - Manual creation of a deployment via CodeDeploy is also possible
@@ -50,7 +50,7 @@
 # New Learnings
 - Cloud Formation
 - Ruby Apps
-- Passenger (played withit but didnt end up using it)
+- Passenger (played with it but didn't end up using it)
 
 # Further Improvments Required
 Combine templates into one. This requires wait conditions to be setup, but I have been having issues getting the aws tools working on the redhat AMI.

@@ -33,6 +33,12 @@
 - Create a stack on Cloudformation using template_part_1.json
 - Update the stack on Cloudformation using template_part_2.json  
 
+# Updating Sample App Code
+- Updated code will need to commied to a GIT repo
+- Update the REA2DeploymentGroup element in template_part_2.json with the repo id and commit id
+- Use CloudFormation to deploy the new template
+- Manual creation of a deployment via CodeDeploy is also possible
+
 # New Learnings
 - Cloud Formation
 - Ruby Apps

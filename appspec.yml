@@ -1,7 +1,7 @@
 version: 0.0
 os: linux
 files:
-  - source: /simple-sinatra-app-master
+  - source: ./simple-sinatra-app-master
     destination: /home/webuser/
 hooks:
   BeforeInstall:

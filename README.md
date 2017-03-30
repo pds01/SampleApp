@@ -33,9 +33,9 @@
 - Web application runs as non root user
 - Web application is proxied across by Apache
 - Ports are not open to the world
+- No SSH access to the VMs
 
 # Instalation Instructions
-- Update the templates SSH key element ""KeyName": "Phil AWS"" with a key thats already in your account
 - Create a stack on Cloudformation using template_part_1.json
 - Ensure status checks are green on the instances
 - Update the stack on Cloudformation using template_part_2.json  

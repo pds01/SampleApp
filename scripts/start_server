@@ -1,5 +1,7 @@
 #!/bin/bash
 
+chown -R webuser:webuser /home/webuser/simple-sinatra-app-master
+
 su - webuser <<'EOF'
 cd simple-sinatra-app-master/
 

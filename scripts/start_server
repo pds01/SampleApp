@@ -1,13 +1,14 @@
 #!/bin/bash
 
-#chown -R webuser:webuser /home/webuser/simple-sinatra-app-master
+chown -R webuser:webuser /home/webuser/simple-sinatra-app-master
 
+# do bundle install as webuser
 su - webuser <<'EOF'
 cd simple-sinatra-app-master/
 
 bundle install
 EOF
-
+# start app and apache
 systemctl start myapp.service
 systemctl start httpd
 

@@ -22,7 +22,7 @@ WantedBy=multi-user.target
 
 EOL
 
-cat /etc/httpd/conf.d/proxy.conf <<EOL
+cat >/etc/httpd/conf.d/proxy.conf <<EOL
 <VirtualHost *:*>
     ProxyPreserveHost On
     ProxyPass        "/" "http://localhost:8080/"

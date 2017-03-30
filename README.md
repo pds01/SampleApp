@@ -28,6 +28,12 @@
 - 1 x Code Deploy Deployment Group
 - 1 x Code Deploy Deployment
 
+# Security Considerations
+- SeLinux is in place
+- Web application runs as non root user
+- Web application is proxied across by Apache
+- Ports are not open to the world
+
 # Instalation Instructions
 - Update the templates SSH key element ""KeyName": "Phil AWS"" with a key thats alreay in your account
 - Create a stack on Cloudformation using template_part_1.json

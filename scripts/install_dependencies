@@ -32,7 +32,7 @@ cat >/etc/httpd/conf.d/proxy.conf <<EOL
 EOL
 
 
-setsebool -P httpd_can_network_connect on
+/sbin/setsebool -P httpd_can_network_connect on
 
 
 systemctl enable myapp.service
